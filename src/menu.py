@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from sys import argv
 import util
-from puzzle import Puzzle
+import puzzle
 
 
 WELCOME_MESSAGE = """
@@ -9,6 +9,7 @@ Welcome to the 15 Puzzle!
 
 Your Options:
 (n) start a new game
+(c) custom game
 (q) quit
 """.strip()
 
@@ -25,6 +26,7 @@ KEY_ACTIONS = dict([(k, a) for a, (k, _) in ACTION_NAMES.items()])
 
 def play(puzzle):
     p = puzzle
+    moves = 0
     while True:
         util.clear_screen()
         print(p)
@@ -34,12 +36,23 @@ def play(puzzle):
             key, desc = ACTION_NAMES[opt]
             print("(" + key + ")" + " " + desc)
         print("(q) quit")
+        print("moves:", moves)
         print()
         action = util.read_prompt()
         if action == "q":
             break;
         if action in KEY_ACTIONS and KEY_ACTIONS[action] in opts:
             p.apply_action(KEY_ACTIONS[action])
+            moves += 1
+
+
+def custom_game():
+    print("Enter Numbers separated by space")
+    ns = util.read_prompt()
+    ns = ns.split()
+    ns = [int(n) for n in ns]
+    p = puzzle.Puzzle(array=puzzle.numberlist_to_array(ns))
+    play(p)
 
             
 
@@ -49,8 +62,12 @@ def main():
         print(WELCOME_MESSAGE)
         answer = util.read_prompt()
         if answer == "n":
-            play(Puzzle(4))
-        if answer == "q":
+            p = puzzle.Puzzle()
+            p.shuffle()
+            play(p)
+        elif answer == "c":
+            custom_game()
+        elif answer == "q":
             exit(0)
 
 

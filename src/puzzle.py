@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import math
 
 
 
@@ -9,29 +11,67 @@ ACTIONS = [(0, -1),
 
 
 class Puzzle:
-    def __init__(self, dim):
-        self.dim = dim
-        l = list(range(1, dim**2))
-        l.append(0)
-        l2 = []
-        for i in range(dim):
-            l2.append(l[i*dim:(i+1)*dim])
-        self.array = np.array(l2)
-        self.empty_spot = np.array((dim - 1, dim - 1))
+    def __init__(self, **kwargs):
+        if len(kwargs) > 1:
+            raise ValueError("Only one keyword should be given: " + str(kwargs))
+        if not kwargs:
+            kwargs = {"dim": 4} # default action
+        if "dim" in kwargs:
+            dim = kwargs["dim"]
+            l = list(range(1, dim**2))
+            l.append(0)
+            self._array = numberlist_to_array(l)
+        elif "array" in kwargs:
+            self._array = kwargs["array"]
+
+
+    def empty_position(self):
+        for y in range(self.dim()):
+            for x in range(self.dim()):
+                if self._array.item((y, x)) == 0:
+                    return (y, x)
+            
+
+    def dim(self):
+        return len(self._array)
 
 
     def possible_actions(self):
         return [a for a in ACTIONS
-                if on_field(self.dim, *(self.empty_spot + a))]
+                if on_field(self.dim(), *(np.array(self.empty_position()) + a))]
         
 
     def apply_action(self, a):
-        array_swap(self.array, self.empty_spot, self.empty_spot + a)
-        self.empty_spot += a
-        
+        p = self.empty_position()
+        array_swap(self._array, p, np.array(p) + a)
+
+
+    def shuffle(self, n=1000):
+        """Führt n zufällige Operationen aus"""
+        for i in range(n):
+            action = random.choice(self.possible_actions())
+            self.apply_action(action)
+
+
+    def solved(self):
+        solved_state = Puzzle(self.dim())
+        return self == solved_state
+
+
+    def __eq__(self, other):
+        return self.array == other.array
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self._array)
 
     def __str__(self):
-        return str(self.array)
+        return str(self._array)
+
+    def __repr__(self):
+        return str(self._array)
         
 
 def array_swap(array, p1, p2):
@@ -47,3 +87,15 @@ def on_field(size, x, y):
     in einem Feld der Größe size * size liegt"""
     r = range(size)
     return x in r and y in r
+
+
+def numberlist_to_array(ns):
+    dim = math.sqrt(len(ns))
+    rdim = round(dim)
+    if dim != rdim:
+        raise ValueError("Incorrect amount of elements given.")
+    l = []
+    for i in range(rdim):
+        l.append(ns[i*rdim:(i+1)*rdim])
+    return np.array(l)
+    
