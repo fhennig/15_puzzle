@@ -20,7 +20,7 @@ class Puzzle:
             dim = kwargs["dim"]
             l = list(range(1, dim**2))
             l.append(0)
-            self._array = numberlist_to_array(l)
+            self._array = list_to_array(l)
         elif "array" in kwargs:
             self._array = kwargs["array"]
 
@@ -54,7 +54,17 @@ class Puzzle:
             self.apply_action(action)
 
 
+    def solvable(self):
+        """Gibt an ob das Puzzle lösbar ist."""
+        l1, l2 = [array_to_list(a) for a in [self._array, init_array(self.dim())]]
+        p1 = parity(array_to_list(self._array),
+                    array_to_list(init_array(self.dim())))
+        p2 = (-1)**manhattan_distance(self.dim() - 1, self.dim() -1, *self.empty_position())
+        return p1 == p2
+            
+
     def solved(self):
+        """Gibt an ob das Puzzle gelöst ist"""
         return all((self._array == init_array(self.dim())).flatten())
 
 
@@ -90,7 +100,7 @@ def on_field(size, x, y):
     return x in r and y in r
 
 
-def numberlist_to_array(ns):
+def list_to_array(ns):
     dim = math.sqrt(len(ns))
     rdim = round(dim)
     if dim != rdim:
@@ -101,11 +111,48 @@ def numberlist_to_array(ns):
     return np.array(l)
 
 
+def array_to_list(a):
+    return list(a.flatten())
+
+
 def init_array(dim):
     l = list(range(1, dim**2))
     l.append(0)
-    return numberlist_to_array(l)
+    return list_to_array(l)
     
 
 def manhattan_distance(x1, y1, x2, y2):
     return abs(x1 - x2) + abs(y1 - y2)
+
+
+def cycle(perm, init):
+    """perm ist eine bijektion als Dictionary, init ist ein Element
+    aus dem Bildraum. Gibt den Zyklus der Permutation zurück, der init enthält"""
+    cycle = [init]
+    while True:
+        next = perm[cycle[-1]]
+        if next == init:
+            break
+        cycle.append(next)
+    return cycle
+
+
+def parity(n):
+    return (-1)**n
+
+
+def parity(perm1, perm2):
+    """perm1, perm2 Listen mit identischen Elementen aber (ggf)
+    unterschiedlicher Reihenfolge der Elemente.
+    Interpretiert perm2 als eine Permutation von perm1 und gibt
+    die Parität dieser Permutation zurück."""
+    assert sorted(perm1) == sorted(perm2)
+    perm = dict(zip(perm1, perm2))
+    cycles = []
+    items = perm1[:]
+    while items:
+        c = cycle(perm, items[0])
+        cycles.append(c)
+        items = [i for i in items if i not in c]
+    transpositions = sum([len(c) - 1 for c in cycles])
+    return (-1)**transpositions

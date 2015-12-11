@@ -35,9 +35,10 @@ def play(puzzle):
         for opt in opts:
             key, desc = ACTION_NAMES[opt]
             print("(" + key + ")" + " " + desc)
-        print("(q) quit\n")
-        print("moves:  ", moves, "\n")
-        print("solved: ", p.solved(), "\n")
+        print("(q) quit"), print()
+        print("moves:    ", moves)
+        print("solvable: ", p.solvable())
+        print("solved:   ", p.solved())
         action = util.read_prompt()
         if action == "q":
             break;
