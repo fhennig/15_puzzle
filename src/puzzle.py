@@ -76,10 +76,11 @@ class Puzzle:
 
 def array_swap(array, p1, p2):
     """Vertauscht die Elemente an Position p1 und p2"""
-    v1 = array.item(tuple(p1))
-    v2 = array.item(tuple(p2))
-    array.itemset(tuple(p2), v1)
-    array.itemset(tuple(p1), v2)
+    p1, p2 = tuple(p1), tuple(p2)
+    v1 = array.item(p1)
+    v2 = array.item(p2)
+    array.itemset(p2, v1)
+    array.itemset(p1, v2)
     
 
 def on_field(size, x, y):
