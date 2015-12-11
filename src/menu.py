@@ -23,13 +23,32 @@ ACTION_NAMES = {(0, -1): ("a", "left"),
 KEY_ACTIONS = dict([(k, a) for a, (k, _) in ACTION_NAMES.items()])
 
 
+def puzzle_str_dict(p):
+    d = dict()
+    for elem in p.elements():
+        elem1 = elem + 1
+        if elem1 == p.dim()**2:
+            d.update({elem: "."})
+        else:
+            d.update({elem: str(elem1)})
+    return d
+
+
+def puzzle_to_str(p):
+    d = puzzle_str_dict(p)
+    w = len(max(d.values(), key=len))
+    strs = [d[e].rjust(w) for e in p.elements()]
+    a = puzzle.list_to_array(strs)
+    lines = [" ".join(l) for l in a]
+    return "\n".join(lines)
+
 
 def play(puzzle):
     p = puzzle
     moves = 0
     while True:
         util.clear_screen()
-        print(p)
+        print(puzzle_to_str(p))
         print("Your Options:")
         opts = p.possible_actions()
         for opt in opts:

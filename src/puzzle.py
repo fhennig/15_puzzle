@@ -11,6 +11,7 @@ ACTIONS = [(0, -1),
 
 
 class Puzzle:
+    """Zustand ist nur ein numpy-Array self._array"""
     def __init__(self, **kwargs):
         if len(kwargs) > 1:
             raise ValueError("Only one keyword should be given: " + str(kwargs))
@@ -18,22 +19,28 @@ class Puzzle:
             kwargs = {"dim": 4} # default action
         if "dim" in kwargs:
             dim = kwargs["dim"]
-            l = list(range(1, dim**2))
-            l.append(0)
-            self._array = list_to_array(l)
+            self._array = init_array(dim)
         elif "array" in kwargs:
             self._array = kwargs["array"]
+            
+
+    def dim(self):
+        return len(self._array)
+
+
+    def elements(self):
+        return array_to_list(self._array)
+    
+
+    def movable_element(self):
+        return self.dim()**2 - 1
 
 
     def empty_position(self):
         for y in range(self.dim()):
             for x in range(self.dim()):
-                if self._array.item((y, x)) == 0:
+                if self._array.item((y, x)) == self.movable_element():
                     return (y, x)
-            
-
-    def dim(self):
-        return len(self._array)
 
 
     def possible_actions(self):
@@ -65,7 +72,7 @@ class Puzzle:
 
     def solved(self):
         """Gibt an ob das Puzzle gelöst ist"""
-        return all((self._array == init_array(self.dim())).flatten())
+        return all((self._array == a_sorted(self._array)).flatten())
 
 
     def __eq__(self, other):
@@ -100,6 +107,11 @@ def on_field(size, x, y):
     return x in r and y in r
 
 
+def init_array(dim):
+    l = list(range(dim**2))
+    return list_to_array(l)
+
+
 def list_to_array(ns):
     dim = math.sqrt(len(ns))
     rdim = round(dim)
@@ -115,10 +127,8 @@ def array_to_list(a):
     return list(a.flatten())
 
 
-def init_array(dim):
-    l = list(range(1, dim**2))
-    l.append(0)
-    return list_to_array(l)
+def a_sorted(array):
+    return list_to_array(sorted(array_to_list(array)))
     
 
 def manhattan_distance(x1, y1, x2, y2):
@@ -135,10 +145,6 @@ def cycle(perm, init):
             break
         cycle.append(next)
     return cycle
-
-
-def parity(n):
-    return (-1)**n
 
 
 def parity(perm1, perm2):
