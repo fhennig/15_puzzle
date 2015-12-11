@@ -42,6 +42,7 @@ class Puzzle:
         
 
     def apply_action(self, a):
+        assert a in ACTIONS, "action is not a valid action: %r" % a
         p = self.empty_position()
         array_swap(self._array, p, np.array(p) + a)
 
@@ -54,8 +55,7 @@ class Puzzle:
 
 
     def solved(self):
-        solved_state = Puzzle(self.dim())
-        return self == solved_state
+        return all((self._array == init_array(self.dim())).flatten())
 
 
     def __eq__(self, other):
@@ -98,4 +98,13 @@ def numberlist_to_array(ns):
     for i in range(rdim):
         l.append(ns[i*rdim:(i+1)*rdim])
     return np.array(l)
+
+
+def init_array(dim):
+    l = list(range(1, dim**2))
+    l.append(0)
+    return numberlist_to_array(l)
     
+
+def manhattan_distance(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
