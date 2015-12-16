@@ -1,8 +1,8 @@
 import numpy as np
 import random
-import math
 import heapq as q
 import functools
+import util as u
 
 
 
@@ -26,7 +26,7 @@ class Puzzle:
 
 
     def elements(self):
-        return array_to_list(self._array)
+        return u.array_to_list(self._array)
     
 
     def movable_element(self):
@@ -45,7 +45,7 @@ class Puzzle:
 
 
     def actions(self):
-        return four_neighbors(0, 0)
+        return u.four_neighbors(0, 0)
 
 
     def possible_actions(self):
@@ -70,16 +70,16 @@ class Puzzle:
 
     def solvable(self):
         """Gibt an ob das Puzzle lösbar ist."""
-        l1, l2 = [array_to_list(a) for a in [self._array, init_array(self.dim())]]
-        p1 = parity(array_to_list(self._array),
-                    array_to_list(init_array(self.dim())))
-        p2 = (-1)**manhattan_distance(self.dim() - 1, self.dim() -1, *self.empty_position())
+        l1, l2 = [u.array_to_list(a) for a in [self._array, init_array(self.dim())]]
+        p1 = parity(u.array_to_list(self._array),
+                    u.array_to_list(init_array(self.dim())))
+        p2 = (-1)**u.manhattan_distance(self.dim() - 1, self.dim() -1, *self.empty_position())
         return p1 == p2
             
 
     def solved(self):
         """Gibt an ob das Puzzle gelöst ist"""
-        return all((self._array == a_sorted(self._array)).flatten())
+        return all((self._array == u.a_sorted(self._array)).flatten())
 
 
     def solved_state(self):
@@ -113,7 +113,7 @@ class Puzzle:
         d = self.str_dict()
         w = len(max(d.values(), key=len))
         strs = [d[e].rjust(w) for e in self.elements()]
-        a = list_to_array(strs)
+        a = u.list_to_array(strs)
         lines = [" ".join(l) for l in a]
         return "\n".join(lines)
 
@@ -122,8 +122,8 @@ class Puzzle:
         return str(self)
 
 
+    
 ### utility ###
-
 
 def array_swap(array, p1, p2):
     """Vertauscht die Elemente an Position p1 und p2"""
@@ -145,31 +145,12 @@ def on_field(size, x, y):
 
 def init_array(dim):
     l = list(range(dim**2))
-    return list_to_array(l)
+    return u.list_to_array(l)
 
 
-def list_to_array(ns):
-    dim = math.sqrt(len(ns))
-    rdim = round(dim)
-    if dim != rdim:
-        raise ValueError("Incorrect amount of elements given.")
-    l = []
-    for i in range(rdim):
-        l.append(ns[i*rdim:(i+1)*rdim])
-    return np.array(l)
 
 
-def array_to_list(a):
-    return list(a.flatten())
-
-
-def a_sorted(array):
-    return list_to_array(sorted(array_to_list(array)))
-    
-
-def manhattan_distance(x1, y1, x2, y2):
-    return abs(x1 - x2) + abs(y1 - y2)
-
+### solvability ###
 
 def cycle(perm, init):
     """perm ist eine bijektion als Dictionary, init ist ein Element
@@ -188,7 +169,6 @@ def parity(perm1, perm2):
     unterschiedlicher Reihenfolge der Elemente.
     Interpretiert perm2 als eine Permutation von perm1 und gibt
     die Parität dieser Permutation zurück."""
-#    assert sorted(perm1) == sorted(perm2)
     perm = dict(zip(perm1, perm2))
     cycles = []
     items = perm1[:]
@@ -200,18 +180,11 @@ def parity(perm1, perm2):
     return (-1)**transpositions
 
 
-### solver ###
-    
-        
-def four_neighbors(x, y):
-    return [(x - 1, y),
-            (x, y - 1),
-            (x + 1, y),
-            (x, y + 1)]
 
+### solver ###
 
 def a_star(dim, start, goal, obstacles):
-    priority = lambda p: len(p) + manhattan_distance(*p[-1], *goal)
+    priority = lambda p: len(p) + u.manhattan_distance(*p[-1], *goal)
     visited = set()
     frontier = list()
     q.heappush(frontier, (priority([start]), [start]))
@@ -221,7 +194,7 @@ def a_star(dim, start, goal, obstacles):
             return path
         if not path[-1] in visited:
             visited.add(path[-1])
-            walkable_neighbors = [n for n in four_neighbors(*path[-1])
+            walkable_neighbors = [n for n in u.four_neighbors(*path[-1])
                                   if on_field(dim, *n) and n not in obstacles]
             for p in [path + [n] for n in walkable_neighbors]:
                 q.heappush(frontier, (priority(p), p))

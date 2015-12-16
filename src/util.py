@@ -1,37 +1,35 @@
-import sys
+import math
+import numpy as np
 
 
 
-### shell ###
-
-def clear_screen():
-    sys.stdout.write('\033[2J\033[1;1H')
-    sys.stdout.flush()
-
-
-def read_prompt():
-    sys.stdout.write('\033[35;1m')
-    sys.stdout.write('> ')
-    sys.stdout.flush()
-    line = sys.stdin.readline()
-    sys.stdout.write('\033[0m')
-    if not line:
-        sys.exit(1)
-    if len(line) > 1024:
-        sys.exit(1)
-    return line.strip()
+def list_to_array(ns): ## TODO shape als Parameter entgegen nehmen 
+    """Erstellt aus einer Liste von Elementen ein quadratisches Array."""
+    dim = math.sqrt(len(ns))
+    rdim = round(dim)
+    if dim != rdim:
+        raise ValueError("Incorrect amount of elements given.")
+    l = []
+    for i in range(rdim):
+        l.append(ns[i*rdim:(i+1)*rdim])
+    return np.array(l)
 
 
-def hit_enter():
-    sys.stdout.write('\033[35;1m')
-    sys.stdout.write('\n[hit enter to continue]\n> ')
-    sys.stdout.flush()
-    sys.stdin.readline()
-    sys.stdout.write('\033[0m')
+def array_to_list(a):
+    """Erstellt aus einem Array eine Liste."""
+    return list(a.flatten())
 
 
+def a_sorted(array):
+    return list_to_array(sorted(array_to_list(array)))
+    
 
-### general ###
+def manhattan_distance(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
 
-def invert_dict(d):
-    return dict([(v, k) for k, v in d.items()])
+
+def four_neighbors(x, y):
+    return [(x - 1, y),
+            (x, y - 1),
+            (x + 1, y),
+            (x, y + 1)]

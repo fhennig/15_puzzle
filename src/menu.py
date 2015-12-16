@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from sys import argv
-import util
+import shell_utils as util
 import puzzle
 
 
