@@ -2,6 +2,8 @@ import sys
 
 
 
+### shell ###
+
 def clear_screen():
     sys.stdout.write('\033[2J\033[1;1H')
     sys.stdout.flush()
@@ -26,3 +28,10 @@ def hit_enter():
     sys.stdout.flush()
     sys.stdin.readline()
     sys.stdout.write('\033[0m')
+
+
+
+### general ###
+
+def invert_dict(d):
+    return dict([(v, k) for k, v in d.items()])

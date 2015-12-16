@@ -6,12 +6,6 @@ import functools
 
 
 
-ACTIONS = [(0, -1),
-           (-1, 0),
-           (0, +1),
-           (+1, 0)]
-
-
 class Puzzle:
     """Zustand ist nur ein numpy-Array self._array
     immutable"""
@@ -50,13 +44,17 @@ class Puzzle:
                     return (y, x)
 
 
+    def actions(self):
+        return four_neighbors(0, 0)
+
+
     def possible_actions(self):
-        return [a for a in ACTIONS
+        return [a for a in self.actions()
                 if on_field(self.dim(), *(np.array(self.empty_position()) + a))]
         
 
     def apply_action(self, a):
-        assert a in ACTIONS, "action is not a valid action: %r" % a
+        assert a in self.actions(), "action is not a valid action: %r" % a
         p = self.empty_position()
         return Puzzle(array=array_swap(self._array, p, np.array(p) + a))
 

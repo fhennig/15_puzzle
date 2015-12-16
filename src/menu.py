@@ -45,11 +45,13 @@ def play(p):
             moves += 1
 
 
-def custom_game():
+def custom_game(): ## TODO try catch
     print("Enter Numbers separated by space")
     ns = util.read_prompt()
     ns = ns.split()
-    ns = [int(n) for n in ns]
+    dim = len(puzzle.list_to_array(ns))
+    d = util.invert_dict(puzzle.Puzzle(dim=dim).str_dict())
+    ns = [d[n] for n in ns]
     p = puzzle.Puzzle(array=puzzle.list_to_array(ns))
     play(p)
 
