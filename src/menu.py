@@ -23,32 +23,11 @@ ACTION_NAMES = {(0, -1): ("a", "left"),
 KEY_ACTIONS = dict([(k, a) for a, (k, _) in ACTION_NAMES.items()])
 
 
-def puzzle_str_dict(p):
-    d = dict()
-    for elem in p.elements():
-        elem1 = elem + 1
-        if elem1 == p.dim()**2:
-            d.update({elem: "."})
-        else:
-            d.update({elem: str(elem1)})
-    return d
-
-
-def puzzle_to_str(p):
-    d = puzzle_str_dict(p)
-    w = len(max(d.values(), key=len))
-    strs = [d[e].rjust(w) for e in p.elements()]
-    a = puzzle.list_to_array(strs)
-    lines = [" ".join(l) for l in a]
-    return "\n".join(lines)
-
-
-def play(puzzle):
-    p = puzzle
+def play(p):
     moves = 0
     while True:
         util.clear_screen()
-        print(puzzle_to_str(p))
+        print(p)
         print("Your Options:")
         opts = p.possible_actions()
         for opt in opts:
@@ -62,7 +41,7 @@ def play(puzzle):
         if action == "q":
             break;
         if action in KEY_ACTIONS and KEY_ACTIONS[action] in opts:
-            p.apply_action(KEY_ACTIONS[action])
+            p = p.apply_action(KEY_ACTIONS[action])
             moves += 1
 
 
@@ -71,7 +50,7 @@ def custom_game():
     ns = util.read_prompt()
     ns = ns.split()
     ns = [int(n) for n in ns]
-    p = puzzle.Puzzle(array=puzzle.numberlist_to_array(ns))
+    p = puzzle.Puzzle(array=puzzle.list_to_array(ns))
     play(p)
 
             
