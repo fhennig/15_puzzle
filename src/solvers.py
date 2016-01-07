@@ -1,48 +1,49 @@
 import math
-import puzzle as p
+import puzzle as puzzle
 import util as u
 import heapq as q
 import collections as c
 
 ### heuristics ###
 
-def manhattan_dist_sum(puzzle):
-    solved = puzzle.solved_state()
+def manhattan_dist_sum(p):
+    solved = puzzle.solved(p)
     s = 0
-    for e in puzzle.elements():
-        s_pos = puzzle.get_position(e)
-        t_pos = solved.get_position(e)
+    for e in p.flat:
+        s_pos = puzzle.get_position(p, e)
+        t_pos = puzzle.get_position(solved, e)
         s += u.manhattan_distance(*s_pos, *t_pos)
     return s
 
 
 ### iterative deepening a star ###
 
-
 class Node:
-    def __init__(self, puzzle, hist, heuristic):
-        self.puzzle = puzzle
+    def __init__(self, p, hist, heuristic):
+        self.p = p
         self.hist = hist
         self.heuristic = heuristic
-        self.prio = len(self.hist) + self.heuristic(self.puzzle)
+        self.prio = len(self.hist) + self.heuristic(self.p)
         self.h_val = self.prio
 
 
     def useful_actions(self):
-        actions = self.puzzle.possible_actions()
-        if len(self.hist) > 0:
-            actions.remove(p.reverse_action(self.hist[-1]))
+        actions = puzzle.possible_actions(self.p)
+        print("actions:", actions)
+        print("hist:   ", self.hist)
+#         if len(self.hist) > 0:
+#             actions.remove(puzzle.reverse_action(self.hist[-1]))
         return actions
 
 
     def expand(self):
-        return [Node(self.puzzle.apply_action(a),
+        return [Node(puzzle.apply_action(self.p, a),
                      self.hist + [a], self.heuristic)
                 for a in self.useful_actions()]
 
 
     def is_goal(self):
-        return self.puzzle.solved()
+        return puzzle.is_solved(self.p)
 
     
     def __lt__(self, other):
@@ -98,8 +99,8 @@ def bounded_dfs(node, bound):
         return found_goal, None
 
 
-def ida_star(puzzle):
-    node = Node(puzzle, [], manhattan_dist_sum)
+def ida_star(p):
+    node = Node(p, [], manhattan_dist_sum)
     bound = node.h_val
     while True:
         print(bound)

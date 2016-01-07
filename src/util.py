@@ -15,11 +15,6 @@ def list_to_array(ns): ## TODO shape als Parameter entgegen nehmen
     return np.array(l)
 
 
-def array_to_list(a):
-    """Erstellt aus einem Array eine Liste."""
-    return list(a.flatten())
-
-
 def a_sorted(array):
     return list_to_array(sorted(array_to_list(array)))
     
