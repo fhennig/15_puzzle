@@ -13,15 +13,15 @@ class Puzzle:
         if len(kwargs) > 1:
             raise ValueError("Only one keyword should be given: " + str(kwargs))
         if not kwargs:
-            kwargs = {"dim": 4} # default action
-        if "dim" in kwargs:
-            dim = kwargs["dim"]
-            self._array = init_array(dim)
+            kwargs = {"n": 4} # default action
+        if "n" in kwargs:
+            n = kwargs["n"]
+            self._array = init_array(n)
         elif "array" in kwargs:
             self._array = kwargs["array"]
             
 
-    def dim(self):
+    def n(self):
         return len(self._array)
 
 
@@ -30,7 +30,7 @@ class Puzzle:
     
 
     def movable_element(self):
-        return self.dim()**2 - 1
+        return self.n()**2 - 1
 
 
     def empty_position(self):
@@ -38,8 +38,8 @@ class Puzzle:
 
 
     def get_position(self, element):
-        for y in range(self.dim()):
-            for x in range(self.dim()):
+        for y in range(self.n()):
+            for x in range(self.n()):
                 if self._array.item((y, x)) == element:
                     return (y, x)
 
@@ -50,7 +50,7 @@ class Puzzle:
 
     def possible_actions(self):
         return [a for a in self.actions()
-                if on_field(self.dim(), *(np.array(self.empty_position()) + a))]
+                if on_field(self.n(), *(np.array(self.empty_position()) + a))]
         
 
     def apply_action(self, a):
@@ -70,10 +70,10 @@ class Puzzle:
 
     def solvable(self):
         """Gibt an ob das Puzzle lösbar ist."""
-        l1, l2 = [u.array_to_list(a) for a in [self._array, init_array(self.dim())]]
+        l1, l2 = [u.array_to_list(a) for a in [self._array, init_array(self.n())]]
         p1 = parity(u.array_to_list(self._array),
-                    u.array_to_list(init_array(self.dim())))
-        p2 = (-1)**u.manhattan_distance(self.dim() - 1, self.dim() -1, *self.empty_position())
+                    u.array_to_list(init_array(self.n())))
+        p2 = (-1)**u.manhattan_distance(self.n() - 1, self.n() -1, *self.empty_position())
         return p1 == p2
             
 
@@ -82,8 +82,9 @@ class Puzzle:
         return all((self._array == u.a_sorted(self._array)).flatten())
 
 
+    ## TODO hier sollte wirklich das array gesorted zurück gegeben werden
     def solved_state(self):
-        return Puzzle(dim=self.dim())
+        return Puzzle(n=self.n())
 
 
     def __eq__(self, other):
@@ -102,7 +103,7 @@ class Puzzle:
         d = dict()
         for elem in self.elements():
             elem1 = elem + 1
-            if elem1 == self.dim()**2:
+            if elem1 == self.n()**2:
                 d.update({elem: "."})
             else:
                 d.update({elem: str(elem1)})
@@ -143,11 +144,13 @@ def on_field(size, x, y):
     return x in r and y in r
 
 
-def init_array(dim):
-    l = list(range(dim**2))
+def init_array(n):
+    l = list(range(n**2))
     return u.list_to_array(l)
 
 
+def reverse_action(a):
+    return tuple(np.array(a) * -1)
 
 
 ### solvability ###
@@ -183,7 +186,7 @@ def parity(perm1, perm2):
 
 ### solver ###
 
-def a_star(dim, start, goal, obstacles):
+def a_star(n, start, goal, obstacles):
     priority = lambda p: len(p) + u.manhattan_distance(*p[-1], *goal)
     visited = set()
     frontier = list()
@@ -195,7 +198,7 @@ def a_star(dim, start, goal, obstacles):
         if not path[-1] in visited:
             visited.add(path[-1])
             walkable_neighbors = [n for n in u.four_neighbors(*path[-1])
-                                  if on_field(dim, *n) and n not in obstacles]
+                                  if on_field(n, *n) and n not in obstacles]
             for p in [path + [n] for n in walkable_neighbors]:
                 q.heappush(frontier, (priority(p), p))
     return None
@@ -215,7 +218,7 @@ class PosAction:
     def execute(self, puzzle, locked):
         l = locked.copy()
         l.add(self.locked_position())
-        path = a_star(puzzle.dim(),
+        path = a_star(puzzle.n(),
                       puzzle.get_position(puzzle.movable_element()),
                       self.start_position, l)
         assert path, "PosAction not executable, starting position not reachable"
@@ -252,7 +255,7 @@ def move_one_tile(puzzle, tile, target_position, locked):
     locked: set von Positionen (Tupeln)"""
     start_position = puzzle.get_position(tile)
     print("start pos:", start_position)
-    path = a_star(puzzle.dim(), start_position, target_position, locked)
+    path = a_star(puzzle.n(), start_position, target_position, locked)
     pos_actions = coords_to_pos_actions(path)
     for a in pos_actions:
         print("Meta-Action", a.start_position, a.action)
