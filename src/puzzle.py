@@ -3,44 +3,17 @@ import random
 import heapq as q
 import functools as f
 import util as u
-import operator 
-import logging
-import sys
+import operator
+from my_logging import log
 
-
-level = logging.DEBUG
-log = logging.getLogger()
-log.setLevel(level)
-
-if len(log.handlers) == 0:
-   ch = logging.StreamHandler(sys.stdout)
-   ch.setLevel(logging.DEBUG)
-   formatter = logging.Formatter(logging.BASIC_FORMAT)
-   ch.setFormatter(formatter)
-   log.addHandler(ch)
-
-   
-# def str_dict(self):
-#     d = dict()
-#     for elem in self.elements():
-#         elem1 = elem + 1
-#         if elem1 == self.n()**2:
-#             d.update({elem: "."})
-#         else:
-#             d.update({elem: str(elem1)})
-#     return d
-# 
-# 
-# def __str__(self):
-#     d = self.str_dict()
-#     w = len(max(d.values(), key=len))
-#     strs = [d[e].rjust(w) for e in self.elements()]
-#     a = u.list_to_array(strs)
-#     lines = [" ".join(l) for l in a]
-#     return "\n".join(lines)
 
     
 ### utility ###
+
+def manhattan_dist(c1, c2):
+    assert len(c1) == len(c2), "Coordinates must be of same dimension"
+    return sum(abs(np.array(c1) - c2))
+    
 
 def rotate(l, n=1):
     return l[n:] + l[:n]
@@ -124,13 +97,12 @@ def origin(dim):
 
 def direct_neighbors(coord):
     """Vierer-Nachbarschaft auf n Dimensionen"""
-    orig = origin(len(coord))
     ns = []
     for i, v in enumerate(coord):
-        n1 = list(orig)
+        n1 = list(coord)
         n1[i] = v + 1
         ns.append(tuple(n1))
-        n2 = list(orig)
+        n2 = list(coord)
         n2[i] = v - 1
         ns.append(tuple(n2))
     return ns
@@ -213,7 +185,7 @@ def a_star(n, start, goal, obstacles):
             return path
         if not path[-1] in visited:
             visited.add(path[-1])
-            walkable_neighbors = [nb for nb in u.four_neighbors(*path[-1])
+            walkable_neighbors = [nb for nb in direct_neighbors(path[-1])
                                   if on_field((n, n), nb) and nb not in obstacles]
             for p in [path + [n] for n in walkable_neighbors]:
                 q.heappush(frontier, (priority(p), p))
