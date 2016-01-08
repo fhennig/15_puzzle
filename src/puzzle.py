@@ -7,16 +7,19 @@ import operator
 import logging
 import sys
 
+
+level = logging.DEBUG
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(level)
 
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
+if len(log.handlers) == 0:
+   ch = logging.StreamHandler(sys.stdout)
+   ch.setLevel(logging.DEBUG)
+   formatter = logging.Formatter(logging.BASIC_FORMAT)
+   ch.setFormatter(formatter)
+   log.addHandler(ch)
 
-
+   
 # def str_dict(self):
 #     d = dict()
 #     for elem in self.elements():
@@ -206,15 +209,12 @@ def a_star(n, start, goal, obstacles):
     q.heappush(frontier, (priority([start]), [start]))
     while frontier:
         _, path = q.heappop(frontier)
-        print("goal:", goal, "asdf", path[-1])
         if path[-1] == goal:
             return path
         if not path[-1] in visited:
             visited.add(path[-1])
             walkable_neighbors = [nb for nb in u.four_neighbors(*path[-1])
                                   if on_field((n, n), nb) and nb not in obstacles]
-            print(obstacles)
-            print("walkable_neighbors:", walkable_neighbors)
             for p in [path + [n] for n in walkable_neighbors]:
                 q.heappush(frontier, (priority(p), p))
     return None
@@ -235,8 +235,8 @@ class PosAction:
         """p: das Feld auf dem die Aktion ausgeführt werden soll
         locked: eine Menge von Positionen die nicht bewegt werden dürfen. 
         Die erste Position die durch die Aktion betreten wird, wird autoamtisch gelockt"""
-        log.info("executing PosAction; start: {}, actions: {}".format(self.start_position,
-                                                                      self.actions))
+        log.debug("executing PosAction; start: {}, actions: {}".format(self.start_position,
+                                                                       self.actions))
         l = locked.copy()
         l.add(self.locked_position()) # die erste Position wird automatisch gelockt!
         path = a_star(p.shape[0],
@@ -244,7 +244,7 @@ class PosAction:
                       self.start_position, l)
         assert path, "PosAction not executable, starting position not reachable"
         init_actions = coords_to_actions(path)
-        log.info("moving into start pos., path: {}".format(init_actions))
+#        log.info("moving into start pos., path: {}".format(init_actions))
         p = apply_actions(p, init_actions)
         p = apply_actions(p, self.actions)
         return p, init_actions + self.actions
@@ -273,13 +273,13 @@ def move_one_tile(p, tile, target_position, locked):
     locked: set von Positionen (Tupeln)"""
     start_position = get_position(p, tile)
     path = a_star(p.shape[0], start_position, target_position, locked)
-    print(path)
+#    print(path)
     pos_actions = coords_to_pos_actions(path)
-    print(pos_actions)
+#    print(pos_actions)
     actions = []
     for a in pos_actions:
-        print("Meta-Action", a.start_position, a.actions)
-        print(p)
+#        print("Meta-Action", a.start_position, a.actions)
+#        print(p)
         p, acts = a.execute(p, locked)
         actions += acts
     return p, actions
@@ -316,7 +316,8 @@ class SolverStruct:
         """Löst die ersten n-2 der obersten Reihe und bringt den n-1ten in eine
         geeignete Position um ihn zusammen mit dem n-ten zu lösen (z.B.: '12.3')"""
         d = self.get_target_positions()
-        for i in d:
+        for i in sorted(d):
+            log.info("solving element {}".format(i))
             self.p, acts = move_one_tile(self.p, i, d[i], self.locked)
             self._moves += acts
             self.locked.add(get_position(self.p, i))
@@ -340,8 +341,7 @@ class SolverStruct:
 
         
     def solve_last(self):
-        print("###################################")
-        print("solve_last:", self.p)
+#        log.info("solving last:\n{}",format(self.p))
         """Löst die letzten beiden Elemente, womit dann die ganze Reihe gelöst ist"""
         r, d, l, u = (0, 1), (1, 0), (0, -1), (-1, 0)
         final_lst_pos = get_position(self.s, self.s[0][-1])
@@ -386,24 +386,16 @@ def next_is_column(p):
 
 
 def solve(p):
+    counter = 0
     moves = []
     while not is_solved(p):
+        log.info("solve, iteration {}, puzzle:\n{}".format(counter, p))
+        counter += 1
         transp = next_is_column(p)
         ss = SolverStruct(p, moves, transp)
         p, moves = ss.execute()
         log.info("another row solved:\n{}".format(p))
         p = p[:, 1:] if transp else p[1:, :]
+        log.info("shrinking p:\n{}".format(p))
+        log.info("solved: " + str(is_solved(p)))
     return moves
-
-        
-
-            
-
-# def solve(p):
-#     solved_pos = set()
-#     for i in [1, 2]:
-#         print("###### Moving Tile:", i),
-#         p = move_one_tile(p, i, get_position(solved(p), i), solved_pos)
-#         solved_pos.add(get_position(p, i))
-#     return p
-        
