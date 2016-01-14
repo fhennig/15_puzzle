@@ -174,3 +174,14 @@ def shuffle(p, n=1000):
         action = random.choice(possible_actions(p))
         p = apply_action(p, action)
     return p
+
+
+def random_puzzle(shape):
+    l = list(range(product(shape)))
+    while True:
+        random.shuffle(l)
+        p = from_list(l, shape)
+        if solvable(p):
+            return p
+        
+    

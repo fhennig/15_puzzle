@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
+import logging
+import time
 from sys import argv
 import shell_utils as util
-import puzzle
+import puzzle as puz
+import solver_human_like as shl
 
 
 WELCOME_MESSAGE = """
 Welcome to the 15 Puzzle!
 
 Your Options:
+(d) demo
 (n) start a new game
 (c) custom game
 (q) quit
@@ -55,13 +59,75 @@ def custom_game(): ## TODO try catch
     p = puzzle.Puzzle(array=puzzle.list_to_array(ns))
     play(p)
 
+
+def read_number():
+    n = False
+    while not n:
+        s = util.read_prompt()
+        try:
+            n = int(s) # Kann einen Fehler ergeben
+        except:
+            pass
+    return n
+
+
+def str_dict(puzzle):
+    d = dict()
+    for elem in puzzle.flat:
+        if elem == 0:
+            d.update({elem: "."})
+        else:
+            d.update({elem: str(elem)})
+    return d
+
+
+def puzzle_to_str(puzzle):
+    d = str_dict(puzzle)
+    w = len(max(d.values(), key=len))
+    strs = [d[e].rjust(w) for e in puzzle.flat]
+    a = puz.from_list(strs, puzzle.shape)
+    lines = [" ".join(l) for l in a]
+    return "\n".join(lines)
+
+
+def demo_path(puzzle, path, sleep_time = 0.5):
+    print(puzzle_to_str(puzzle))
+    while path:
+        puzzle = puz.apply_action(puzzle, path[0])
+        path = path[1:]
+        time.sleep(sleep_time)
+        util.clear_screen()
+        print(puzzle_to_str(puzzle))
+        
+
+def demo():
+    util.clear_screen()
+    print("Enter Dimensions")
+    print("rows:")
+    n = read_number()
+    print("cols:")
+    m = read_number()
+    p = puz.puzzle_from_shape((n, m))
+    p = puz.shuffle(p, n*m*100)
+    print(p)
+    start_time = time.time()
+    path = shl.solve(p)
+    exec_time = time.time() - start_time
+    print("Time to find path:", exec_time, "seconds")
+    print("Path length:      ", len(path))
+#    demo_path(p, path)
+
+    
             
 
 def main():
+    logging.getLogger().setLevel(logging.FATAL)
     while True:
         util.clear_screen()
         print(WELCOME_MESSAGE)
         answer = util.read_prompt()
+        if answer == "d":
+            demo()
         if answer == "n":
             p = puzzle.Puzzle()
             p.shuffle()
