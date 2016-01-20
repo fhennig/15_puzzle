@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import sys
 import logging
 import time
 from sys import argv
 import shell_utils as util
 import puzzle as puz
+import numpy as np
 import solver_human_like as shl
 
 
@@ -90,14 +92,22 @@ def puzzle_to_str(puzzle):
     return "\n".join(lines)
 
 
-def demo_path(puzzle, path, sleep_time = 0.5):
+def demo_path(puzzle, path):
+    print("Enter Speed:")
+    ms = read_number()
+    sleep_time = ms / 1000
     print(puzzle_to_str(puzzle))
+    path_len = len(path)
     while path:
         puzzle = puz.apply_action(puzzle, path[0])
         path = path[1:]
         time.sleep(sleep_time)
         util.clear_screen()
         print(puzzle_to_str(puzzle))
+        print()
+        print(path_len - len(path), "/", path_len)
+        solved_tiles = puz.solved_tiles(puzzle)
+        print(len(solved_tiles), solved_tiles)
         
 
 def demo():
@@ -107,36 +117,53 @@ def demo():
     n = read_number()
     print("cols:")
     m = read_number()
-    p = puz.puzzle_from_shape((n, m))
-    p = puz.shuffle(p, n*m*100)
+    p = puz.random_puzzle((n, m))
+    demo_solver(p)
+
+
+def demo_solver(p):
     print(p)
     start_time = time.time()
     path = shl.solve(p)
     exec_time = time.time() - start_time
     print("Time to find path:", exec_time, "seconds")
     print("Path length:      ", len(path))
-#    demo_path(p, path)
+    demo_path(p, path)
 
-    
+
+def read_puzzle(filename):
+    with open(filename) as f:
+        lines = f.read().strip().split("\n")
+        nr_strs = [line.split(" ") for line in lines]
+        nrs = [[int(s) for s in line] for line in nr_strs]
+        puzzle = np.array(nrs)
+        return puzzle
             
 
-def main():
-    logging.getLogger().setLevel(logging.FATAL)
-    while True:
-        util.clear_screen()
-        print(WELCOME_MESSAGE)
-        answer = util.read_prompt()
-        if answer == "d":
-            demo()
-        if answer == "n":
-            p = puzzle.Puzzle()
-            p.shuffle()
-            play(p)
-        elif answer == "c":
-            custom_game()
-        elif answer == "q":
-            exit(0)
+def main(filename = None):
+    logging.getLogger().setLevel(logging.FATAL) ## deactive logging
+    if filename:
+        p = read_puzzle(filename)
+        demo_solver(p)
+    else:
+        while True:
+            util.clear_screen()
+            print(WELCOME_MESSAGE)
+            answer = util.read_prompt()
+            if answer == "d":
+                demo()
+            if answer == "n":
+                p = puzzle.Puzzle()
+                p.shuffle()
+                play(p)
+            elif answer == "c":
+                custom_game()
+            elif answer == "q":
+                exit(0)
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        main(argv[1])
+    else:
+        main()

@@ -89,6 +89,15 @@ def is_solved(p):
     return all((p == solved(p)).flat)
 
 
+def solved_tiles(p):
+    tiles = []
+    s = solved(p)
+    for t in p.flat:
+        if get_position(p, t) == get_position(s, t):
+            tiles.append(t)
+    return tiles
+
+
 def solvable(p):
     """Gibt an ob das Puzzle lösbar ist."""
     p1 = parity(p.flat, solved(p).flat)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 import puzzle as p
+import solvers as s
 import numpy as np
 
 
@@ -22,7 +23,7 @@ pn1 = np.array([[ 3,  1, 14, 11],
 
 ### test class(es) ###
 
-class TestStuff(unittest.TestCase):
+class TestPuzzle(unittest.TestCase):
 
     def test_manhattan_dist(self):
         self.assertEqual(p.manhattan_dist((0, 0), (1, 1)), 2)
@@ -55,6 +56,22 @@ class TestStuff(unittest.TestCase):
         self.assertTrue(self.equal_from_list_with_array(ps1))
         self.assertTrue(self.equal_from_list_with_array(pn1))
 
+# ps1 = np.array([[ 3,  1, 14, 11],
+#                 [ 9, 12,  5, 13],
+#                 [ 4,  7,  0,  8],
+#                 [ 2,  6, 10, 15]])
+
+solved = p.puzzle_from_shape((4, 4))
+
+class TestSolvers(unittest.TestCase):
+
+    def test_manhattan_dist_sum(self):
+        self.assertEqual(s.manhattan_dist_sum(ps1, positions = [1, 3]), 3)
+        self.assertEqual(s.manhattan_dist_sum(ps1, positions = [1, 2]), 5)
+
+    def test_SubSelect(self):
+        self.assertTrue(s.SubSelect().applicable(solved))
+        self.assertTrue(all(s.SubSelect().apply(solved).flat == solved[1:, 1:].flat))
 
 if __name__ == "__main__":
     unittest.main()
