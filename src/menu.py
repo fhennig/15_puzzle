@@ -7,7 +7,11 @@ import shell_utils as util
 import puzzle as puz
 import numpy as np
 import solver_human_like as shl
+import solvers
 
+
+
+### constants ###
 
 WELCOME_MESSAGE = """
 Welcome to the 15 Puzzle!
@@ -29,49 +33,7 @@ ACTION_NAMES = {(0, -1): ("a", "left"),
 KEY_ACTIONS = dict([(k, a) for a, (k, _) in ACTION_NAMES.items()])
 
 
-def play(p):
-    moves = 0
-    while True:
-        util.clear_screen()
-        print(p)
-        print("Your Options:")
-        opts = p.possible_actions()
-        for opt in opts:
-            key, desc = ACTION_NAMES[opt]
-            print("(" + key + ")" + " " + desc)
-        print("(q) quit"), print()
-        print("moves:    ", moves)
-        print("solvable: ", p.solvable())
-        print("solved:   ", p.solved())
-        action = util.read_prompt()
-        if action == "q":
-            break;
-        if action in KEY_ACTIONS and KEY_ACTIONS[action] in opts:
-            p = p.apply_action(KEY_ACTIONS[action])
-            moves += 1
-
-
-def custom_game(): ## TODO try catch
-    print("Enter Numbers separated by space")
-    ns = util.read_prompt()
-    ns = ns.split()
-    dim = len(puzzle.list_to_array(ns))
-    d = util.invert_dict(puzzle.Puzzle(dim=dim).str_dict())
-    ns = [d[n] for n in ns]
-    p = puzzle.Puzzle(array=puzzle.list_to_array(ns))
-    play(p)
-
-
-def read_number():
-    n = False
-    while not n:
-        s = util.read_prompt()
-        try:
-            n = int(s) # Kann einen Fehler ergeben
-        except:
-            pass
-    return n
-
+### string conversion ###
 
 def str_dict(puzzle):
     d = dict()
@@ -92,17 +54,22 @@ def puzzle_to_str(puzzle):
     return "\n".join(lines)
 
 
+### demo ###
+
 def demo_path(puzzle, path):
-    print("Enter Speed:")
-    ms = read_number()
+    print("Enter speed (ms):")
+    ms = util.read_number()
     sleep_time = ms / 1000
     print(puzzle_to_str(puzzle))
     path_len = len(path)
     while path:
+        if sleep_time < 0:
+            util.hit_enter()
+        else:
+            time.sleep(sleep_time)
+        util.clear_screen()
         puzzle = puz.apply_action(puzzle, path[0])
         path = path[1:]
-        time.sleep(sleep_time)
-        util.clear_screen()
         print(puzzle_to_str(puzzle))
         print()
         print(path_len - len(path), "/", path_len)
@@ -110,56 +77,59 @@ def demo_path(puzzle, path):
         print(len(solved_tiles), solved_tiles)
         
 
-def demo():
+def create_puzzle_with_dims():
     util.clear_screen()
     print("Enter Dimensions")
     print("rows:")
-    n = read_number()
+    n = util.read_number()
     print("cols:")
-    m = read_number()
+    m = util.read_number()
     p = puz.random_puzzle((n, m))
-    demo_solver(p)
+    return p
 
 
-def demo_solver(p):
-    print(p)
+def demo_solver(p, solver_fn):
     start_time = time.time()
-    path = shl.solve(p)
+    path = solver_fn(p)
     exec_time = time.time() - start_time
     print("Time to find path:", exec_time, "seconds")
     print("Path length:      ", len(path))
     demo_path(p, path)
 
 
-def read_puzzle(filename):
-    with open(filename) as f:
-        lines = f.read().strip().split("\n")
-        nr_strs = [line.split(" ") for line in lines]
-        nrs = [[int(s) for s in line] for line in nr_strs]
-        puzzle = np.array(nrs)
-        return puzzle
-            
+choose_solver_msg = """
+Choose a method for solving
+(a) IDA* 
+(r) recursive IDA*
+(h) human like
+""".strip()
+    
+
+def choose_solver():
+    print(choose_solver_msg)
+    char = util.read_prompt()
+    while True:
+        if char == "a":
+            return solvers.ida_star
+        if char == "r":
+            return solvers.rec_a_star
+        if char == "h":
+            return shl.solve
+        print("Invalid Choice")
+
 
 def main(filename = None):
-    logging.getLogger().setLevel(logging.FATAL) ## deactive logging
+    logging.getLogger().setLevel(logging.FATAL) # deactive logging
     if filename:
-        p = read_puzzle(filename)
-        demo_solver(p)
+        p = puz.read_puzzle(filename)
     else:
-        while True:
-            util.clear_screen()
-            print(WELCOME_MESSAGE)
-            answer = util.read_prompt()
-            if answer == "d":
-                demo()
-            if answer == "n":
-                p = puzzle.Puzzle()
-                p.shuffle()
-                play(p)
-            elif answer == "c":
-                custom_game()
-            elif answer == "q":
-                exit(0)
+        p = create_puzzle_with_dims()
+    print(p)
+    if not puz.solvable(p):
+        print("Not solvable")
+        return
+    s = choose_solver()
+    demo_solver(p, s)
 
 
 if __name__ == "__main__":

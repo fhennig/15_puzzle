@@ -22,6 +22,17 @@ def read_prompt():
     return line.strip()
 
 
+def read_number():
+    n = False
+    while not n:
+        s = read_prompt()
+        try:
+            n = int(s) # Kann einen Fehler ergeben
+        except:
+            print("Not a number")
+    return n
+
+
 def hit_enter():
     sys.stdout.write('\033[35;1m')
     sys.stdout.write('\n[hit enter to continue]\n> ')

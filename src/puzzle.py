@@ -50,6 +50,16 @@ def from_list(l, shape):
     return np.fromfunction(np.vectorize(f), shape, dtype=int)
 
 
+def read_puzzle(filename):
+    """reads a puzzle from file""" ## TODO doesn't check anything ...
+    with open(filename) as f:
+        lines = f.read().strip().split("\n")
+        nr_strs = [line.split(" ") for line in lines]
+        nrs = [[int(s) for s in line] for line in nr_strs]
+        puzzle = np.array(nrs)
+        return puzzle
+
+
 ### puzzle ###
 
 def on_field(shape, coord):

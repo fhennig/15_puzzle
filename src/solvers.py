@@ -111,23 +111,23 @@ def bounded_dfs(node, bound):
         else:
             l = sorted(nxt.expand(), key = lambda n: n.h_val, reverse = True)
             stack.extend(l)
-    print(visited_nodes)
+#    print(visited_nodes)
     if not found_goal:
         return None, next_bound
     else:
         return found_goal, None
 
 
-def ida_star(p, heuristic):
+def ida_star(p, heuristic = manhattan_dist_sum):
     node = Node(p, [], heuristic)
     bound = node.h_val
     while True:
-        print(bound)
+#        print(bound)
         goal, next_bound = bounded_dfs(node, bound)
         if not goal:
             bound = next_bound
         else:
-            print("path with len {} found: {}".format(len(goal.hist), goal.hist))
+#            print("path with len {} found: {}".format(len(goal.hist), goal.hist))
             return goal.hist
 
 
@@ -138,14 +138,14 @@ def binary_a_star(p, heuristic):
     result = None
     while min != max:
         bound = min + math.floor((max - min) / 2)
-        print(bound, min, max)
+#        print(bound, min, max)
         goal, next_bound = bounded_dfs(node, bound)
         if not goal:
             min = next_bound
             bound = next_bound
         else:
             max = bound
-            print("path with len {} found: {}".format(len(goal.hist), goal.hist))
+#            print("path with len {} found: {}".format(len(goal.hist), goal.hist))
             result = goal.hist
     return result
         
@@ -163,15 +163,12 @@ class SubSelect:
         return p[(slice(self.n, None),) * len(p.shape)]
 
 
-def rec_a_star(p, selector):
+def rec_a_star(p, selector = SubSelect()):
     solved = puzzle.solved(p)
     path = []
     while selector.applicable(p):
         tiles_to_solve = [t for t in solved.flat if t not in selector.apply(solved)]
-        print(tiles_to_solve)
         heuristic = lambda puz: manhattan_dist_sum(puz, tiles_to_solve)
-        print("##############, ", heuristic(p))
-        print(p)
         new_path = ida_star(p, heuristic)
         path += new_path
         p = selector.apply(puzzle.apply_actions(p, new_path))
